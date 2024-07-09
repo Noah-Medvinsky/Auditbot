@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solidity Contract Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: #1c1c1c;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Adjust for space between elements */
+            position: relative;
+        }
+        header .left {
+            display: flex;
+            align-items: center;
+        }
+        header h1 {
+            margin: 0;
+            color: #ffffff;
+            padding-left: 10px;
+            font-size: 24px; /* Reduced font size */
+        }
+        .header-icon-container {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+        }
+        .header-icon {
+            width: 50px;
+            height: 50px;
+            display: block;
+        }
+        nav {
+            display: flex;
+            align-items: center;
+        }
+        nav a {
+            color: #ffffff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 16px; /* Reduced font size */
+        }
+        nav a:hover {
+            color: #4caf50;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            text-align: center; /* Center the text */
+        }
+        .container h2 {
+            font-size: 32px; /* Match the design size */
+            margin-bottom: 20px; /* Add some margin for spacing */
+        }
+        .container p {
+            font-size: 18px; /* Adjust size to match design */
+            margin-bottom: 20px; /* Add some margin for spacing */
+            width: 600px; /* Set width to match the input box */
+            line-height: 1.4; /* Adjust line height for better readability */
+            color: #b0b0b0; /* Set text color to gray */
+        }
+        input, button {
+            width: 600px; /* Fixed width to align elements */
+            padding: 15px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 20px; /* Make corners more rounded */
+        }
+        input {
+            background-color: #333;
+            color: #e0e0e0;
+        }
+        button {
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+            width: 630px; /* Ensure the button width matches the input */
+            
+            
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #response {
+            margin-top: 20px;
+            text-align: left;
+            background: #2c2c2c;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 5px;
+            width: 600px; /* Match the width of the input box */
+        }
+        footer {
+            background-color: #1c1c1c;
+            padding: 20px;
+            text-align: center;
+            color: #777;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="left">
+            <div class="header-icon-container">
+                <img src="images/no_background.png" alt="Robot Icon" class="header-icon">
+            </div>
+            <h1>SolidityContractAnalyzer</h1>
+        </div>
+        <nav>
+            <a href="#">Home</a>
+            <a href="#">Analysis Results</a>
+            <a href="#">Settings</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h2>Analyze Your Solidity Contract</h2>
+        <p>Enter the contract address below to start the analysis process. Our tool will provide detailed insights and analysis of your Solidity contract.</p>
+        <input id="contractAddress" placeholder="Enter Contract Address"/>
+        <button onclick="analyzeContract()">Analyze Contract</button>
+        <div id="response"></div>
+        
+    </div>
+    <footer>
+        <p>Privacy Policy | Terms of Service | Contact Us</p>
+        <p>© 2023 SolidityContractAnalyzer. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function analyzeContract() {
+            const contractAddress = document.getElementById('contractAddress').value;
+
+            const response = await fetch('http://localhost:3000/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ address: contractAddress })
+            });
+
+            const data = await response.json();
+            document.getElementById('response').innerHTML = marked.parse(data.analysis);
+        }
+    </script>
+</body>
+</html>
