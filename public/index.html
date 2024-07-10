@@ -20,7 +20,7 @@
             padding: 15px;
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Adjust for space between elements */
+            justify-content: space-between;
             position: relative;
         }
         header .left {
@@ -31,7 +31,7 @@
             margin: 0;
             color: #ffffff;
             padding-left: 10px;
-            font-size: 24px; /* Reduced font size */
+            font-size: 24px;
         }
         .header-icon-container {
             display: flex;
@@ -51,7 +51,7 @@
             color: #ffffff;
             text-decoration: none;
             margin: 0 15px;
-            font-size: 16px; /* Reduced font size */
+            font-size: 16px;
         }
         nav a:hover {
             color: #4caf50;
@@ -63,26 +63,26 @@
             align-items: center;
             flex-direction: column;
             padding: 20px;
-            text-align: center; /* Center the text */
+            text-align: center;
         }
         .container h2 {
-            font-size: 32px; /* Match the design size */
-            margin-bottom: 20px; /* Add some margin for spacing */
+            font-size: 32px;
+            margin-bottom: 20px;
         }
         .container p {
-            font-size: 18px; /* Adjust size to match design */
-            margin-bottom: 20px; /* Add some margin for spacing */
-            width: 600px; /* Set width to match the input box */
-            line-height: 1.4; /* Adjust line height for better readability */
-            color: #b0b0b0; /* Set text color to gray */
+            font-size: 18px;
+            margin-bottom: 20px;
+            width: 600px;
+            line-height: 1.4;
+            color: #b0b0b0;
         }
         input, button {
-            width: 600px; /* Fixed width to align elements */
+            width: 600px;
             padding: 15px;
             font-size: 16px;
             margin-bottom: 10px;
             border: none;
-            border-radius: 20px; /* Make corners more rounded */
+            border-radius: 20px;
         }
         input {
             background-color: #333;
@@ -92,9 +92,7 @@
             background-color: #4caf50;
             color: white;
             cursor: pointer;
-            width: 630px; /* Ensure the button width matches the input */
-            
-            
+            width: 630px;
         }
         button:hover {
             background-color: #45a049;
@@ -106,7 +104,7 @@
             border: 1px solid #444;
             padding: 10px;
             border-radius: 5px;
-            width: 600px; /* Match the width of the input box */
+            width: 600px;
         }
         footer {
             background-color: #1c1c1c;
@@ -136,7 +134,6 @@
         <p>Enter the contract address below to start the analysis process. Our tool will provide detailed insights and analysis of your Solidity contract.</p>
         <input id="contractAddress" placeholder="Enter Contract Address"/>
         <button onclick="analyzeContract()">Analyze Contract</button>
-        <div id="response"></div>
         
     </div>
     <footer>
@@ -148,7 +145,7 @@
         async function analyzeContract() {
             const contractAddress = document.getElementById('contractAddress').value;
 
-            const response = await fetch('http://localhost:3000/analyze', {
+            const response = await fetch('/analyze', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -156,8 +153,12 @@
                 body: JSON.stringify({ address: contractAddress })
             });
 
-            const data = await response.json();
-            document.getElementById('response').innerHTML = marked.parse(data.analysis);
+            if (response.ok) {
+                window.location.href = '/results';
+            } else {
+                const data = await response.json();
+                document.getElementById('response').innerHTML = marked.parse(data.error);
+            }
         }
     </script>
 </body>

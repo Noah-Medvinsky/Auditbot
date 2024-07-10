@@ -28,6 +28,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Serve the analysis results page from the public directory
+app.get('/results', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'results.html'));
+});
+
 app.post('/analyze', async (req, res) => {
     const contractAddress = req.body.address;
 
@@ -57,18 +62,19 @@ app.post('/analyze', async (req, res) => {
         console.log("Slither Analysis:\n" + slitherResult);
 
         const promptContent = `
-        You are a smart contract auditor. Analyze the following Solidity code for vulnerabilities such as overflow/underflow, reentrancy, and timestamp dependency. Provide detailed explanations for each identified vulnerability.
-        
+        You are a smart contract auditor. Analyze the following Solidity code for vulnerabilities such as overflow/underflow, reentrancy, and timestamp dependency. Provide detailed explanations for each identified vulnerability, categorize the issues into "Security Issues," "Code Quality Issues," and "Recommendations." Include a section for "Solutions" to address the identified issues with clear code examples. Highlight the most pressing issues using **bold text**. Ensure the response is well-structured and easy to read.
+
         \`\`\`solidity
         ${sourceCode}
         \`\`\`
-        
-        Here is Slither's Analysis. Categorize the issues into "Security Issues" and "Code Quality Issues", and provide solutions for each. When providing solutions, make it clear and provide code examples of what you are talking about. Also, highlight the most pressing issues using **bold text**. Use code blocks only for complete code snippets and function signatures, and ensure the response is well-structured and easy to read.
+
+        Here is Slither's Analysis:
         
         \`\`\`
         ${slitherResult}
         \`\`\`
         `;
+
         const response = await openai.chat.completions.create({
             model: "gpt-4-0613",
             messages: [
@@ -76,8 +82,18 @@ app.post('/analyze', async (req, res) => {
                 { role: "user", content: promptContent },
             ],
         });
+
         const analysis = response.choices[0].message.content;
-        res.json({ analysis });
+
+        console.log("FULL ANALYSIS: " + analysis);
+
+        // Save the analysis to a temporary file in the public directory
+        fs.writeFileSync(path.join(__dirname, 'public', 'analysis.json'), JSON.stringify({
+            analysis
+        }), 'utf8');
+
+        // Respond with a success message
+        res.json({ success: true });
     } catch (error) {
         console.error("Error:", error);
         if (!res.headersSent) {
