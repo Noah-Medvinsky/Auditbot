@@ -94,8 +94,29 @@
             cursor: pointer;
             width: 630px;
         }
-        button:hover {
+        button.loading {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        button.loading::after {
+            content: " Loading...";
+        }
+        button:hover:not(.loading) {
             background-color: #45a049;
+        }
+        #progress-bar {
+            width: 619px;
+            background-color: #333;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        #progress-bar div {
+            height: 20px;
+            background-color: #4caf50;
+            border-radius: 20px;
+            width: 0%;
+            transition: width 0.5s;
         }
         #response {
             margin-top: 20px;
@@ -133,8 +154,9 @@
         <h2>Analyze Your Solidity Contract</h2>
         <p>Enter the contract address below to start the analysis process. Our tool will provide detailed insights and analysis of your Solidity contract.</p>
         <input id="contractAddress" placeholder="Enter Contract Address"/>
-        <button onclick="analyzeContract()">Analyze Contract</button>
-        
+        <button id="analyzeButton" onclick="analyzeContract()">Analyze Contract</button>
+        <div id="progress-bar"><div></div></div>
+      
     </div>
     <footer>
         <p>Privacy Policy | Terms of Service | Contact Us</p>
@@ -142,8 +164,31 @@
     </footer>
 
     <script>
+        function simulateProgress() {
+            const progressBar = document.getElementById('progress-bar');
+            const progress = progressBar.querySelector('div');
+            let width = 0;
+
+            progressBar.style.display = 'block';
+
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                } else {
+                    width += 2; // Increase the width by 2% every 0.5 second
+                    progress.style.width = width + '%';
+                }
+            }, 500); // 0.5 second interval
+        }
+
         async function analyzeContract() {
             const contractAddress = document.getElementById('contractAddress').value;
+            const analyzeButton = document.getElementById('analyzeButton');
+
+            analyzeButton.classList.add('loading');
+            analyzeButton.disabled = true;
+
+            simulateProgress(); // Start the progress bar simulation
 
             const response = await fetch('/analyze', {
                 method: 'POST',
@@ -156,6 +201,8 @@
             if (response.ok) {
                 window.location.href = '/results';
             } else {
+                analyzeButton.classList.remove('loading');
+                analyzeButton.disabled = false;
                 const data = await response.json();
                 document.getElementById('response').innerHTML = marked.parse(data.error);
             }

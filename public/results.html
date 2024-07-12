@@ -3,130 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solidity Contract Analysis Bot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #e0e0e0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        header {
-            background-color: #1c1c1c;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        header nav a {
-            color: #ffffff;
-            text-decoration: none;
-            margin: 0 10px;
-            font-size: 16px;
-        }
-        header nav a:hover {
-            color: #4caf50;
-        }
-        .container {
-            width: 80%;
-            max-width: 800px;
-            padding: 20px;
-            background-color: #1c1c1c;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .result-section {
-            background: #2c2c2c;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            overflow: hidden; /* Prevent overlap */
-        }
-        .result-section h3 {
-            margin-top: 0;
-            font-size: 20px;
-        }
-        .result-section p {
-            margin: 10px 0;
-        }
-        pre {
-            background: #333;
-            border: 1px solid #444;
-            padding: 10px;
-            border-radius: 5px;
-            white-space: pre-wrap;
-            overflow-x: auto; /* Allow horizontal scrolling */
-            margin: 10px 0; /* Add margin between code blocks */
-        }
-        code {
-            background: #333;
-            border: 1px solid #444;
-            padding: 2px 4px;
-            border-radius: 3px;
-            white-space: pre-wrap;
-            overflow-x: auto;
-            display: inline-block;
-            margin: 0 2px;
-        }
-        .section-title {
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        .bold-text {
-            font-weight: bold;
-        }
-        footer {
-            background-color: #1c1c1c;
-            padding: 10px;
-            text-align: center;
-            color: #777;
-            width: 100%;
-            position: fixed;
-            bottom: 0;
-        }
-        .section-title {
-            font-weight: bold;
-            margin-top: 20px;
-        }
-        .code-snippet {
-            background-color: #f9f9f9;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            max-width: 100%; /* Ensure code snippets do not stretch across the entire screen */
-            width: fit-content; /* Adjust the width to fit the content */
-            white-space: pre-wrap; /* Allow wrapping within the code block */
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .bold-text {
-            font-weight: bold;
-        }
-    </style>
+    <title>Solidity Contract Analysis Results</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>Solidity Contract Analysis Bot</h1>
+        <div class="left">
+            <div class="header-icon-container">
+                <img src="images/no_background.png" alt="Robot Icon" class="header-icon">
+            </div>
+            <h1>SolidityContractAnalyzer</h1>
+        </div>
         <nav>
             <a href="#">Home</a>
             <a href="#">Analysis Results</a>
@@ -135,8 +23,21 @@
     </header>
     <div class="container">
         <h1>Analysis Results</h1>
-        <div id="analysis-content" class="result-section">
-            <div id="content"></div>
+        <div id="security-issues" class="result-section">
+            <h3>Security Issues</h3>
+            <div id="security-content"></div>
+        </div>
+        <div id="code-quality-issues" class="result-section">
+            <h3>Code Quality Issues</h3>
+            <div id="code-quality-content"></div>
+        </div>
+        <div id="solutions" class="result-section">
+            <h3>Solutions</h3>
+            <div id="solutions-content"></div>
+        </div>
+        <div id= class="result-section">
+            
+            <div id="companies-content"></div>
         </div>
     </div>
     <footer>
@@ -145,10 +46,63 @@
     </footer>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const response = await fetch('/analysis.json');
-            const data = await response.json();
+            try {
+                const response = await fetch('/analysis.json');
+                const data = await response.json();
+                const analysis = data.analysis;
 
-            document.getElementById('content').innerHTML = marked.parse(data.analysis);
+                // Split the analysis into different sections using regex
+                const sections = {
+                    securityIssues: /## Security Issues([\s\S]*?)(?=## Code Quality Issues|## Solutions|$)/,
+                    codeQualityIssues: /## Code Quality Issues([\s\S]*?)(?=## Security Issues|## Solutions|$)/,
+                    solutions: /## Solutions([\s\S]*?)(?=## Security Issues|## Code Quality Issues|$)/,
+                };
+
+                const extractSection = (regex) => {
+                    const match = analysis.match(regex);
+                    return match ? match[1].trim() : "No issues found.";
+                };
+
+                const securityIssues = extractSection(sections.securityIssues);
+                const codeQualityIssues = extractSection(sections.codeQualityIssues);
+                const solutions = extractSection(sections.solutions);
+
+                const securityContent = document.getElementById('security-content');
+                const codeQualityContent = document.getElementById('code-quality-content');
+                const solutionsContent = document.getElementById('solutions-content');
+
+                if (securityContent) {
+                    securityContent.innerHTML = marked.parse(securityIssues);
+                } else {
+                    console.error("Element with ID 'security-content' not found.");
+                }
+
+                if (codeQualityContent) {
+                    codeQualityContent.innerHTML = marked.parse(codeQualityIssues);
+                } else {
+                    console.error("Element with ID 'code-quality-content' not found.");
+                }
+
+                if (solutionsContent) {
+                    solutionsContent.innerHTML = marked.parse(solutions);
+                } else {
+                    console.error("Element with ID 'solutions-content' not found.");
+                }
+
+                // Placeholder for companies that lost money section
+                const companiesContent = document.getElementById('companies-content');
+                if (companiesContent) {
+                    companiesContent.innerHTML = "This section will be added in the future.";
+                } else {
+                    console.error("Element with ID 'companies-content' not found.");
+                }
+
+            } catch (error) {
+                console.error('Error loading analysis:', error);
+                document.getElementById('security-content').innerHTML = "Error loading analysis.";
+                document.getElementById('code-quality-content').innerHTML = "Error loading analysis.";
+                document.getElementById('solutions-content').innerHTML = "Error loading analysis.";
+            }
         });
     </script>
 </body>
