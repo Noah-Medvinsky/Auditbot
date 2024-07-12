@@ -10,15 +10,15 @@ const execPromise = util.promisify(exec);
 const slitherPath = path.join(
     "C:", "Users", "Noah Medvinsky", "AppData", "Local", "Packages", "PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0", "LocalCache", "local-packages", "Python312", "Scripts", "slither.exe"
 );
-
 async function getSolidityVersion(contractPath) {
     const content = fs.readFileSync(contractPath, 'utf8');
-    const versionMatch = content.match(/pragma solidity \^(.*?);/);
+    const versionMatch = content.match(/pragma solidity\s*([^\s;]+);/);
     if (versionMatch) {
-        return versionMatch[1];
+        return versionMatch[1].replace(/[^\d.]/g, '');  // Extract just the version number
     }
     throw new Error('Solidity version not found in contract');
 }
+
 
 async function loadSolcVersion(version) {
     return new Promise((resolve, reject) => {
