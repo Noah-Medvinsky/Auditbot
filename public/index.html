@@ -118,15 +118,6 @@
             width: 0%;
             transition: width 0.5s;
         }
-        #response {
-            margin-top: 20px;
-            text-align: left;
-            background: #2c2c2c;
-            border: 1px solid #444;
-            padding: 10px;
-            border-radius: 5px;
-            width: 600px;
-        }
         footer {
             background-color: #1c1c1c;
             padding: 20px;
@@ -156,7 +147,6 @@
         <input id="contractAddress" placeholder="Enter Contract Address"/>
         <button id="analyzeButton" onclick="analyzeContract()">Analyze Contract</button>
         <div id="progress-bar"><div></div></div>
-      
     </div>
     <footer>
         <p>Privacy Policy | Terms of Service | Contact Us</p>
@@ -190,21 +180,28 @@
 
             simulateProgress(); // Start the progress bar simulation
 
-            const response = await fetch('/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ address: contractAddress })
-            });
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ address: contractAddress })
+                });
 
-            if (response.ok) {
-                window.location.href = '/results';
-            } else {
+                if (response.ok) {
+                    window.location.href = '/results';
+                } else {
+                    analyzeButton.classList.remove('loading');
+                    analyzeButton.disabled = false;
+                    const data = await response.json();
+                    alert(data.error); // Display error in alert
+                }
+            } catch (error) {
+                console.error('Error analyzing contract:', error);
                 analyzeButton.classList.remove('loading');
                 analyzeButton.disabled = false;
-                const data = await response.json();
-                document.getElementById('response').innerHTML = marked.parse(data.error);
+                alert("An error occurred while analyzing the contract.");
             }
         }
     </script>

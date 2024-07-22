@@ -4,8 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
 const OpenAI = require('openai');
-const testexec = require('./slither');  // Import the testexec function
-const toml = require('toml');  // Import the toml parser
+const toml = require('toml');
+const { execSync } = require('child_process');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -61,7 +61,6 @@ app.post('/analyze', async (req, res) => {
             }
         }
 
-        // Log the response data to inspect it
         console.log("Etherscan API Response:", etherscanResponse);
 
         if (etherscanResponse.status !== "1") {
@@ -70,59 +69,102 @@ app.post('/analyze', async (req, res) => {
         }
 
         let sourceCode = etherscanResponse.result[0].SourceCode;
+        const fallbackCompilerVersion = etherscanResponse.result[0].CompilerVersion;
 
         if (!sourceCode) {
             return res.status(400).json({ error: 'Source code not found for the given contract address.' });
         }
 
-        // Check if the sourceCode is enclosed in a JSON object
+        console.log("Received Source Code:", sourceCode);
+        console.log("Fallback Compiler Version:", fallbackCompilerVersion);
+
         if (sourceCode.startsWith('{') && sourceCode.endsWith('}')) {
             try {
                 const parsed = JSON.parse(sourceCode);
-                sourceCode = parsed.sourceCode || '';
+                sourceCode = parsed.sources ? Object.values(parsed.sources).map(src => src.content).join('\n') : parsed.sourceCode || '';
             } catch (error) {
                 console.error("Error parsing JSON source code:", error);
                 return res.status(400).json({ error: 'Failed to parse JSON source code.' });
             }
         }
 
-        // Ensure that the pragma solidity statement is correctly formatted
-        if (!sourceCode.includes('pragma solidity')) {
-            return res.status(400).json({ error: 'Solidity version not found in contract' });
+        const pragmaMatch = sourceCode.match(/pragma solidity\s+([^;]+);/);
+        let solcVersion = pragmaMatch ? pragmaMatch[1].replace(/[^\d.]/g, '') : null;
+
+        if (!solcVersion) {
+            console.error("Pragma solidity version not found in source code:", sourceCode);
+            if (fallbackCompilerVersion) {
+                solcVersion = fallbackCompilerVersion.match(/^v?(\d+\.\d+\.\d+)/)[1];
+                console.log("Using fallback compiler version:", solcVersion);
+            } else {
+                return res.status(400).json({ error: 'Solidity version not found in contract and no fallback version available.' });
+            }
         }
 
-        // Clean up the source code by removing metadata comments and any additional unnecessary information
+        console.log("Detected Solidity Version:", solcVersion);
+
+        const isSolcVersionInstalled = (version) => {
+            try {
+                const installedVersions = execSync('solc-select versions').toString();
+                return installedVersions.includes(version);
+            } catch (error) {
+                return false;
+            }
+        };
+
+        const installAndSwitchSolcVersion = (version) => {
+            try {
+                execSync(`solc-select install ${version}`);
+                execSync(`solc-select use ${version}`);
+            } catch (error) {
+                throw new Error(`Failed to install or switch to solc version ${version}: ${error.message}`);
+            }
+        };
+
+        if (!isSolcVersionInstalled(solcVersion)) {
+            console.log(`Solc version ${solcVersion} not found. Installing...`);
+            installAndSwitchSolcVersion(solcVersion);
+            console.log(`Switched to solc version ${solcVersion}`);
+        } else {
+            console.log(`Solc version ${solcVersion} is already installed. Switching...`);
+            execSync(`solc-select use ${solcVersion}`);
+        }
+
         sourceCode = sourceCode.replace(/\/\*\*[\s\S]*?\*\//g, '').trim();
 
-        // Write the source code to contract.sol
         const contractPath = path.join(__dirname, 'contract.sol');
         fs.writeFileSync(contractPath, sourceCode, 'utf8');
 
-        // Log the contents of the contract file
         const writtenSourceCode = fs.readFileSync(contractPath, 'utf8');
         console.log("Contract File Contents:\n", writtenSourceCode);
 
-        // Get Slither analysis
-        const slitherResult = await testexec(contractPath);
-        console.log("Slither Analysis:\n" + slitherResult);
+        const slitherCommand = `"C:\\Users\\Noah Medvinsky\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python312\\Scripts\\slither.exe" "${contractPath}"`;
+        let slitherResult;
+        try {
+            slitherResult = execSync(slitherCommand, { stdio: 'pipe' }).toString();
+            console.log("Slither Analysis:\n" + slitherResult);
+        } catch (error) {
+            slitherResult = error.stdout.toString() + '\n' + error.stderr.toString();
+            console.log("Slither Analysis with Warnings:\n" + slitherResult);
+        }
 
-        // Prepare the analysis prompt
         const promptContent = `
-        You are a smart contract auditor. Analyze the following Solidity code for vulnerabilities such as overflow/underflow, reentrancy, and timestamp dependency. Provide detailed explanations for each identified vulnerability, categorize the issues into "## Security Issues", "## Code Quality Issues", and include a section for "## Solutions" to address the identified issues with clear code examples. Highlight the most pressing issues using **bold text**. Ensure the response is well-structured, using markdown format with appropriate section headings.
+You are a smart contract auditor. Analyze the following Solidity code for vulnerabilities such as overflow/underflow, reentrancy, and timestamp dependency. Provide detailed explanations for each identified vulnerability, categorize the issues into "## Security Issues", "## Code Quality Issues", and include a section for "## Solutions" to address the identified issues with clear code examples. Highlight the most pressing issues using **bold text**. Ensure the response is well-structured, using markdown format with appropriate section headings.
 
-        \`\`\`solidity
-        ${sourceCode}
-        \`\`\`
+Here is the contract code:
+\`\`\`solidity
+${sourceCode}
+\`\`\`
 
-        Here is Slither's Analysis:
+Here is Slither's Analysis:
                 
-        \`\`\`
-        ${slitherResult}
-        \`\`\`
-        `;
+\`\`\`
+${slitherResult}
+\`\`\`
+`;
 
         const response = await openai.chat.completions.create({
-            model: "gpt-4-0613",
+            model: "gpt-4-turbo",
             messages: [
                 { role: "system", content: "You are an assistant that helps analyze Solidity smart contracts." },
                 { role: "user", content: promptContent },
@@ -133,12 +175,8 @@ app.post('/analyze', async (req, res) => {
 
         console.log("FULL ANALYSIS: " + analysis);
 
-        // Save the analysis to a temporary file in the public directory
-        fs.writeFileSync(path.join(__dirname, 'public', 'analysis.json'), JSON.stringify({
-            analysis
-        }), 'utf8');
+        fs.writeFileSync(path.join(__dirname, 'public', 'analysis.json'), JSON.stringify({ analysis }), 'utf8');
 
-        // Respond with a success message
         res.json({ success: true });
     } catch (error) {
         console.error("Error:", error);
