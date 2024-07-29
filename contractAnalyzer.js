@@ -232,10 +232,10 @@ const runAll = async (contractAddress) => {
 
 function updatePath(baseDir, file) {
   let absolutePath = path.join(baseDir, file);
-  if (absolutePath.includes("@openzeppelin/")) {
+  if (absolutePath.includes("contracts/@openzeppelin/")) {
     absolutePath = absolutePath.replace(
       "@openzeppelin/",
-      "node_modules/@openzeppelin/"
+      "contracts/node_modules/@openzeppelin/"
     );
   }
   return absolutePath;
