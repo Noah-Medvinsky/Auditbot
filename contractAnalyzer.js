@@ -51,7 +51,7 @@ const isSolcVersionInstalled = (version) => {
 const analyzeContract = async (contractPath, baseDir, remapPaths) => {
   const execPromise = util.promisify(exec);
   const allowPaths = `--allow-paths .,${baseDir}`;
-  const slitherCommand = `slither "${contractPath}" --solc-remaps "${remapPaths}" --solc-args="${allowPaths}"`;
+  const slitherCommand = `slither "${contractPath}" --solc-remaps "@=${baseDir}/node_modules/@" --solc-args="${allowPaths}"`;
 
   console.log("Running Slither command:", slitherCommand);
   try {
