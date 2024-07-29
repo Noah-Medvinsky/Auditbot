@@ -234,8 +234,13 @@ function updatePath(baseDir, file) {
   let absolutePath = path.join(baseDir, file);
   if (absolutePath.includes("contracts/@openzeppelin/")) {
     absolutePath = absolutePath.replace(
-      "@openzeppelin/",
+      "contracts/@openzeppelin/",
       "contracts/node_modules/@openzeppelin/"
+    );
+  } else if (absolutePath.includes("contracts/@chainlink/")) {
+    absolutePath = absolutePath.replace(
+      "contracts/@chainlink/",
+      "contracts/node_modules/@chainlink/"
     );
   }
   return absolutePath;
