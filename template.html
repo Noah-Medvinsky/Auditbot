@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Contract Analysis Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background-color: #1c1c1c;
+            color: #4caf50;
+        }
+        .container {
+            padding: 40px;
+            background-color: #1c1c1c;
+            margin: 20px auto;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 800px;
+        }
+        h1, h2, h3 {
+            color: #4caf50;
+        }
+        pre {
+            background-color: #333;
+            color: #e0e0e0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .toc {
+            margin-bottom: 20px;
+        }
+        .toc a {
+            text-decoration: none;
+            color: #4caf50;
+        }
+        .result-section {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .result-section h3 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+        .result-section p {
+            margin: 10px 0;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .bold-text {
+            font-weight: bold;
+        }
+        code {
+            background-color: #2c2c2c;
+            padding: 2px 4px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+        }
+        .code-block {
+            background-color: #2c2c2c;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>Smart Contract Analysis Report</h1>
+    </div>
+    <div class="container">
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#summary">Summary</a></li>
+                <li><a href="#scope">Scope of the Audit</a></li>
+                <li><a href="#security-issues">Security Issues</a></li>
+                <li><a href="#code-quality-issues">Code Quality Issues</a></li>
+                <li><a href="#solutions">Solutions</a></li>
+                <li><a href="#ratings">Ratings and Comments</a></li>
+                <li><a href="#total-score">Total Score</a></li>
+            </ul>
+        </div>
+        <div id="content">
+            <h2 id="summary">Summary</h2>
+            <div id="summary-content"></div>
+            <h2 id="scope">Scope of the Audit</h2>
+            <div id="scope-content"></div>
+            <h2 id="security-issues">Security Issues</h2>
+            <div id="security-content"></div>
+            <h2 id="code-quality-issues">Code Quality Issues</h2>
+            <div id="code-quality-content"></div>
+            <h2 id="solutions">Solutions</h2>
+            <div id="solutions-content"></div>
+            <h2 id="ratings">Ratings and Comments</h2>
+            <div id="ratings-content"></div>
+            <h2 id="total-score">Total Score</h2>
+            <div id="total-score-content"></div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const summaryContent = `{{summary}}`;
+            const scopeContent = `{{scope}}`;
+            const securityIssuesContent = `{{securityIssues}}`;
+            const codeQualityIssuesContent = `{{codeQualityIssues}}`;
+            const solutionsContent = `{{solutions}}`;
+            const ratingsContent = `{{ratingsAndComments}}`;
+            const totalScoreContent = `{{totalScore}}`;
+
+            document.getElementById('summary-content').innerHTML = marked.parse(summaryContent);
+            document.getElementById('scope-content').innerHTML = marked.parse(scopeContent);
+            document.getElementById('security-content').innerHTML = marked.parse(securityIssuesContent);
+            document.getElementById('code-quality-content').innerHTML = marked.parse(codeQualityIssuesContent);
+            document.getElementById('solutions-content').innerHTML = marked.parse(solutionsContent);
+            document.getElementById('ratings-content').innerHTML = marked.parse(ratingsContent);
+            document.getElementById('total-score-content').innerHTML = marked.parse(totalScoreContent);
+        });
+    </script>
+</body>
+</html>

@@ -6,6 +6,7 @@
     <title>Solidity Contract Analysis Results</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <header>
@@ -16,12 +17,13 @@
             <h1>SolidityContractAnalyzer</h1>
         </div>
         <nav>
-            <a href="#">Home</a>
+            <a href="/">Home</a>
             <a href="#">Analysis Results</a>
             <a href="#">Settings</a>
         </nav>
     </header>
     <div class="container">
+        <button onclick="downloadPDF()">Download Report as PDF</button>
         <h1>Analysis Results</h1>
         <div id="security-issues" class="result-section">
             <h3>Security Issues</h3>
@@ -34,10 +36,6 @@
         <div id="solutions" class="result-section">
             <h3>Solutions</h3>
             <div id="solutions-content"></div>
-        </div>
-        <div id= class="result-section">
-            
-            <div id="companies-content"></div>
         </div>
     </div>
     <footer>
@@ -71,32 +69,9 @@
                 const codeQualityContent = document.getElementById('code-quality-content');
                 const solutionsContent = document.getElementById('solutions-content');
 
-                if (securityContent) {
-                    securityContent.innerHTML = marked.parse(securityIssues);
-                } else {
-                    console.error("Element with ID 'security-content' not found.");
-                }
-
-                if (codeQualityContent) {
-                    codeQualityContent.innerHTML = marked.parse(codeQualityIssues);
-                } else {
-                    console.error("Element with ID 'code-quality-content' not found.");
-                }
-
-                if (solutionsContent) {
-                    solutionsContent.innerHTML = marked.parse(solutions);
-                } else {
-                    console.error("Element with ID 'solutions-content' not found.");
-                }
-
-                // Placeholder for companies that lost money section
-                const companiesContent = document.getElementById('companies-content');
-                if (companiesContent) {
-                    companiesContent.innerHTML = "This section will be added in the future.";
-                } else {
-                    console.error("Element with ID 'companies-content' not found.");
-                }
-
+                securityContent.innerHTML = marked.parse(securityIssues);
+                codeQualityContent.innerHTML = marked.parse(codeQualityIssues);
+                solutionsContent.innerHTML = marked.parse(solutions);
             } catch (error) {
                 console.error('Error loading analysis:', error);
                 document.getElementById('security-content').innerHTML = "Error loading analysis.";
@@ -104,6 +79,10 @@
                 document.getElementById('solutions-content').innerHTML = "Error loading analysis.";
             }
         });
+
+        function downloadPDF() {
+            window.location.href = '/download-pdf';
+        }
     </script>
 </body>
 </html>
