@@ -1,5 +1,3 @@
-// contractAnalyzer.js
-
 const axios = require("axios");
 const toml = require("toml");
 const fs = require("fs");
@@ -48,10 +46,10 @@ const isSolcVersionInstalled = (version) => {
 };
 
 // Function to analyze the contract using Slither
-const analyzeContract = async (contractPath, baseDir, remapPaths) => {
+const analyzeContract = async (contractPath, baseDir, remappings1) => {
   const execPromise = util.promisify(exec);
   const allowPaths = `--allow-paths .,${baseDir}`;
-  const slitherCommand = `slither "${contractPath}" --solc-remaps "@=${baseDir}/node_modules/@" --solc-args="${allowPaths}"`;
+  const slitherCommand = `slither "${contractPath}" --solc-remaps "$(tr '\n' ' ' < remappings.txt | xargs)${remappings1}" --solc-args="${allowPaths}"`;
 
   console.log("Running Slither command:", slitherCommand);
   try {
@@ -64,6 +62,28 @@ const analyzeContract = async (contractPath, baseDir, remapPaths) => {
     return error.stderr ? error.stderr.toString() : "No stderr";
   }
 };
+
+// Function to update the path based on presence of node_modules
+function updatePath(baseDir, file, libraries, nodeModulesPresent) {
+  let absolutePath = path.join(baseDir, file);
+  absolutePath = absolutePath.replace(
+    /node_modules\/node_modules/g,
+    "node_modules"
+  );
+
+  if (!nodeModulesPresent) {
+    libraries.forEach((library) => {
+      if (absolutePath.includes(`${library}/`)) {
+        absolutePath = absolutePath.replace(
+          `${library}/`,
+          `node_modules/${library}/`
+        );
+      }
+    });
+  }
+
+  return absolutePath;
+}
 
 // Main function to run all tasks
 const runAll = async (contractAddress) => {
@@ -93,11 +113,42 @@ const runAll = async (contractAddress) => {
       return null;
     }
 
+    //==============================================================
+    //test
+
+    data = JSON.parse(sourceCode.replace(/{{/g, "{").replace(/}}/g, "}"));
+    let remappings1 = "";
+
+    const remappings = JSON.stringify(data.settings.remappings);
+    if (remappings && remappings.trim() !== "[]") {
+      const remappings0 = remappings
+        .replace(/,/g, " ")
+        .replace(/"/g, "")
+        .replace(/\[/g, " ")
+        .replace(/\]/g, "")
+        .replace(/=/g, "=tmp/contracts/");
+
+      const trimmedRemappings1 = remappings0.trim();
+
+      remappings1 = trimmedRemappings1 === "" ? "" : remappings0;
+    }
+    //test
+    //==============================================================
+
     let parsedSourceCode;
     try {
-      parsedSourceCode = JSON.parse(
-        sourceCode.replace("{{", "{").replace("}}", "}")
-      );
+      if (sourceCode.startsWith("{") && sourceCode.endsWith("}")) {
+        parsedSourceCode = JSON.parse(
+          sourceCode.replace(/{{/g, "{").replace(/}}/g, "}")
+        );
+      } else {
+        // Wrap the plain Solidity code in an object structure similar to the JSON format
+        parsedSourceCode = {
+          sources: {
+            "Contract.sol": { content: sourceCode },
+          },
+        };
+      }
     } catch (error) {
       console.error("Failed to parse source code JSON.");
       return null;
@@ -128,6 +179,8 @@ const runAll = async (contractAddress) => {
       }
     });
 
+    let nodeModulesPresent = false;
+
     localFiles.forEach((filePath) => {
       const absolutePath = path.join(baseDir, filePath);
       ensureDirectoryExistence(absolutePath);
@@ -140,6 +193,8 @@ const runAll = async (contractAddress) => {
     const nodeModulesPath = path.join(baseDir, "node_modules");
     if (!fs.existsSync(nodeModulesPath)) {
       fs.mkdirSync(nodeModulesPath);
+    } else {
+      nodeModulesPresent = true;
     }
 
     libraries.forEach((library) => {
@@ -177,15 +232,6 @@ const runAll = async (contractAddress) => {
       return pragmaMatch ? pragmaMatch[1].replace(/[^\d.]/g, "") : null;
     };
 
-    //let solcVersion = detectSolcVersion(sourceCode);
-    //if (!solcVersion) {
-    //if (fallbackCompilerVersion) {
-    //solcVersion = fallbackCompilerVersion.match(/^v?(\d+\.\d+\.\d+)/)[1];
-    //} else {
-    //return null;
-    //}
-    //}
-
     let solcVersion = fallbackCompilerVersion.match(/^v?(\d+\.\d+\.\d+)/)[1];
     console.log("solcversion: " + solcVersion);
 
@@ -204,12 +250,17 @@ const runAll = async (contractAddress) => {
       .join(",");
 
     for (const file of contractFiles) {
-      const absolutePath = updatePath(baseDir, file);
+      const absolutePath = updatePath(
+        baseDir,
+        file,
+        Array.from(libraries),
+        nodeModulesPresent
+      );
       try {
         const results = await analyzeContract(
           absolutePath,
           baseDir,
-          remapPaths
+          remappings1
         );
         slitherResults += results + "\n";
       } catch (error) {
@@ -230,21 +281,7 @@ const runAll = async (contractAddress) => {
   }
 };
 
-function updatePath(baseDir, file) {
-  let absolutePath = path.join(baseDir, file);
-  if (absolutePath.includes("contracts/@openzeppelin/")) {
-    absolutePath = absolutePath.replace(
-      "contracts/@openzeppelin/",
-      "contracts/node_modules/@openzeppelin/"
-    );
-  } else if (absolutePath.includes("contracts/@chainlink/")) {
-    absolutePath = absolutePath.replace(
-      "contracts/@chainlink/",
-      "contracts/node_modules/@chainlink/"
-    );
-  }
-  return absolutePath;
-}
+//runAll(('0x4c5d8A75F3762c1561D96f177694f67378705E98'));
 
 module.exports = {
   runAll,
