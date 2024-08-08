@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Contract Audit Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #333;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: "Courier New", Courier, monospace;
+        }
+        .code-block {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Smart Contract Audit Report</h1>
+    <p>Date: [Insert Date]</p>
+    <p>Prepared for: [Client's Name]</p>
+    <p>Audit firm: [Your Company Name]</p>
+    <hr>
+    # Smart Contract Audit Report
+
+## Title Page
+**Smart Contract Security and Code Quality Audit**  
+*Analysis and Recommendations Report*  
+
+Prepared by: *Your Company*  
+Preparation Date: *DD/MM/YYYY*  
+Smart Contract: *OptimismMintableERC20*
+
+---
+
+## Table of Contents
+1. **Introduction**  
+   1.1 Purpose of the Audit  
+   1.2 Scope of the Audit  
+2. **Audit Methodology**  
+   2.1 Tools and Techniques  
+   2.2 Code Review Process  
+3. **Security Issues**  
+   3.1 Zero Address Validation  
+   3.2 Solidity Version Issues  
+   3.3 Naming Conflicts  
+4. **Code Quality Issues**  
+   4.1 Consistency in Solidity Versions  
+   4.2 Unused Functions and Parameters  
+   4.3 Naming Conventions  
+5. **Solutions and Recommendations**  
+   5.1 Solutions for Security Issues  
+   5.2 Solutions for Code Quality Issues  
+6. **Conclusion**  
+
+---
+
+## 1. Introduction
+
+### 1.1 Purpose of the Audit
+The purpose of this audit is to identify and address potential security vulnerabilities and code quality issues in the OptimismMintableERC20 smart contract. The findings aim to improve the overall security and maintainability of the code.
+
+### 1.2 Scope of the Audit
+The audit focuses on the main security vulnerabilities and code quality concerns within the smart contract's components, particularly regarding zero-address validations, Solidity version compatibility, naming practices, and redundant code elements.
+
+---
+
+## 2. Audit Methodology
+
+### 2.1 Tools and Techniques
+The audit was conducted using automated tools such as Slither and manual code review techniques to ensure comprehensive analysis of the smart contract.
+
+### 2.2 Code Review Process
+Each line of the smart contract code was meticulously examined to identify inconsistencies, vulnerabilities, and areas for improvement. This process included validating business logic, security checks, and adherence to best practices in Solidity programming.
+
+---
+
+## 3. Security Issues
+
+### 3.1 Zero Address Validation
+The `OptimismMintableERC20` constructor lacks validations for zero addresses in the parameters `_bridge` and `_remoteToken`. This can introduce security risks and logical errors.
+
+### 3.2 Solidity Version Issues
+Mixed use of Solidity versions `^0.8.0` and `0.8.15` in the smart contract could lead to potential severe vulnerabilities affecting reliability and security.
+
+### 3.3 Naming Conflicts
+Shadowing of state variables `_name` and `_symbol` with local parameters in the constructor leads to reduced clarity in the code, increasing the risk of errors in maintenance and understanding.
+
+---
+
+## 4. Code Quality Issues
+
+### 4.1 Consistency in Solidity Versions
+Inconsistencies in the usage of Solidity versions within a single project may cause unpredictable behavior and can be vulnerable depending on compiler updates.
+
+### 4.2 Unused Functions and Parameters
+Redundant functions such as `_msgData()` from `Context.sol` that are not utilised should be removed to simplify the codebase.
+
+### 4.3 Naming Conventions
+The naming of constants and variables like `REMOTE_TOKEN` and parameter names such as `_to`, `_amount`, `_from` does not follow the typical CamelCase naming convention, impacting code readability and maintainability.
+
+---
+
+## 5. Solutions and Recommendations
+
+### 5.1 Solutions for Security Issues
+Implement checks to ensure zero address validations on `_bridge` and `_remoteToken`, and resolve naming conflicts by avoiding shadowing inherited state variables.
+
+### 5.2 Solutions for Code Quality Issues
+Refactor the code to use a consistent and stable version of Solidity, remove unused functions and variables, and adhere to conventional naming standards.
+
+---
+
+## 6. Conclusion
+The audit discovered significant security and code quality issues in the OptimismMintableERC20 smart contract. By adopting the recommended solutions, the contract can achieve improved security, reliability, and ease of maintenance. It is highly recommended to address these issues before deploying the contract into production.
+
+---
+
+*End of Report.*
+</body>
+</html>
